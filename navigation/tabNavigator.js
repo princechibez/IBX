@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 import HomeNavigatorStack from "./homeNav";
-import Saved from "../screens/bookmarks";
+import Bookmarks from "../screens/bookmarks";
 
 const TabNavigator = () => {
   const Tab = createBottomTabNavigator();
@@ -49,7 +49,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Bookmarks"
-        component={Saved}
+        component={Bookmarks}
         options={({ route }) => ({
           // tabBarStyle: {},
           tabBarLabel: "Bookmark",

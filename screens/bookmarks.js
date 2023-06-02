@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   SafeAreaView,
   StyleSheet,
-  Dimensions,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Button, Text } from "react-native-paper";
@@ -15,23 +15,39 @@ import { Ionicons } from "@expo/vector-icons";
 
 import * as actions from "../stateManager/actions";
 import ListCards from "../components/listCards";
+import { useCallback } from "react";
 
-const Home = (props) => {
+const { height, width } = Dimensions.get("window");
+
+const Bookmarks = (props) => {
+  useEffect(() => {
+    props.fetchAllBookmarks();
+  }, []);
+
   const goToNewsDetails = (newsInfo) => {
-    console.log(newsInfo);
     props.navigation.navigate("Details", { ...newsInfo });
   };
 
-  const bookmarkDisplay = () => {
+  /**
+   * The callback below is used to determine
+   * what to display on the screen on different conditions
+   * 1. when loading, 2. when there are no bookmarks,
+   * 3. when there are bookmarks to display
+   */
+  const bookmarkDisplay = useCallback(() => {
     let display;
+    // console.log(props.loading, props.bookmarks);
 
     if (props.loading) {
       display = <ActivityIndicator animate size={50} />;
-    } else if (props.otherNews.length === 0) {
-      display = (
+      return;
+    }
+
+    if (props.bookmarks.length === 0) {
+      return (display = (
         <>
           <Text style={{ marginVertical: 12 }} variant="labelMedium">
-            You do not have any bookmarks now
+            {!props.error && "You do not have any bookmarks now"}
           </Text>
           <Button
             onPress={() => props.navigation.navigate("Home")}
@@ -44,9 +60,11 @@ const Home = (props) => {
             View News
           </Button>
         </>
-      );
-    } else {
-      display = props.otherNews.map((filt, index) => (
+      ));
+    }
+
+    if (props.bookmarks) {
+      return (display = props.bookmarks.map((filt, index) => (
         <ListCards
           key={index}
           goToDetails={() => goToNewsDetails(filt)}
@@ -56,11 +74,9 @@ const Home = (props) => {
           author={filt.author}
           date={filt.publishedAt}
         />
-      ));
+      )));
     }
-
-    return display;
-  };
+  }, [props.bookmarks, props.loading]);
 
   return (
     <GestureHandlerRootView>
@@ -71,7 +87,9 @@ const Home = (props) => {
           showsVerticalScrollIndicator={false}
         >
           {/* Filtered news section */}
-          <View style={styles.filteredNews}>{bookmarkDisplay()}</View>
+          <View style={props.bookmarks.length == 0 && styles.filteredNews}>
+            {bookmarkDisplay()}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -80,21 +98,26 @@ const Home = (props) => {
 
 const mapStateToProps = (state) => {
   return {
-    newsHeadLine: state.news.newsHeadlines,
-    // otherNews: state.news.filteredNews,
-    otherNews: [],
-    error: state.news.error,
+    bookmarks: state.bookmark.bookmarks,
+    // error: state.bookmark.error,
+    // success: state.bookmark.success,
     loading: state.news.loading,
   };
 };
 
-export default connect(mapStateToProps)(Home);
+const mapDispatchToProps = (dispatch) => {
+  return {
+    fetchAllBookmarks: () => dispatch(actions.fetchBookmarks()),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Bookmarks);
 
 const styles = StyleSheet.create({
   filteredNews: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+    height: height - 100,
   },
 });

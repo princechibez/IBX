@@ -5,7 +5,7 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from "react-native";
-import { Text } from "react-native-paper";
+import { ActivityIndicator, Text } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import transformDate from "../utilities/dateTransformer";
 
