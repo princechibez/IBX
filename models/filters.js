@@ -1,11 +1,11 @@
 const filters = [
   "nigeria",
+  "netflix",
   "general",
   "Health",
   "foods",
   "entertainment",
   "anime",
-  "netflix",
   "sports",
   "science",
   "Technology",
