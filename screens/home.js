@@ -17,6 +17,7 @@ import * as actions from "../stateManager/actions";
 import { filters } from "../models/filters";
 import NewsScroll from "../components/newsScroll";
 import ListCards from "../components/listCards";
+import { useRef } from "react";
 
 const { width } = Dimensions.get("window");
 
@@ -24,6 +25,8 @@ const Home = (props) => {
   // local states are managed here
   const [searchQuery, setSearchQuery] = useState("nigeria");
   const [activeFilterIndex, setActiveFilterIndex] = useState(0);
+
+  const filterRef = useRef().current;
 
   useEffect(() => {
     props.onFetchNews(searchQuery);
@@ -48,13 +51,18 @@ const Home = (props) => {
             <View style={styles.latestHeaderText}>
               <Text variant="headlineSmall">Latest News</Text>
               <Button
-                onPress={() => props.navigation.navigate("Search")}
-                contentStyle={{ flexDirection: "row-reverse" }}
+                mode="contained"
+                onPress={() => props.navigation.navigate("Bookmarks")}
+                // contentStyle={{ flexDirection: "row-reverse" }}
                 icon={({ size, color }) => (
-                  <Ionicons name="arrow-forward" size={size} color={color} />
+                  <Ionicons
+                    name="md-bookmark-outline"
+                    color={color}
+                    size={size}
+                  />
                 )}
               >
-                See All
+                Bookmarks
               </Button>
             </View>
 
@@ -69,8 +77,8 @@ const Home = (props) => {
 
           {/* Filtered news section */}
           <View style={styles.filteredNews}>
-            {/* filters section */}
-            <View style={{ height: 50, marginBottom: 12 }}>
+            {/* Button filters section */}
+            <View ref={filterRef} style={{ height: 50, marginBottom: 12 }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {filters.map((filt, index) => (
                   <Button
@@ -86,6 +94,9 @@ const Home = (props) => {
                 ))}
               </ScrollView>
             </View>
+            {/* Button filters section */}
+
+            {/* Other news List */}
             {!props.loading &&
               props.otherNews.map((filt, index) => (
                 <ListCards
@@ -98,6 +109,7 @@ const Home = (props) => {
                   date={filt.publishedAt}
                 />
               ))}
+            {/* Other news List */}
           </View>
         </ScrollView>
       </SafeAreaView>

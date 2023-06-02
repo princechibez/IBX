@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Home from "../screens/home";
 import Details from "../screens/details";
-import Search from "../screens/search";
+// import Search from "../screens/search";
 
 const HomeNavigatorStack = () => {
   const Stack = createNativeStackNavigator();
@@ -14,13 +14,13 @@ const HomeNavigatorStack = () => {
         component={Home}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Search"
         component={Search}
         options={({ route }) => ({
           title: "Search News",
         })}
-      />
+      /> */}
       <Stack.Screen
         name="Details"
         component={Details}

@@ -1,19 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { View, Image } from "react-native";
-import { Button, IconButton, Text } from "react-native-paper";
+import { ActivityIndicator, Button, IconButton, Text } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
+import { ScrollView } from "react-native-gesture-handler";
 import LottieView from "lottie-react-native";
+import Toast from "react-native-root-toast";
+import { connect } from "react-redux";
 
+import * as actions from "../stateManager/actions";
 import transformDate from "../utilities/dateTransformer";
+import { useEffect } from "react";
 
-const Details = ({ navigation, route }) => {
+const Details = (props) => {
   // get all properties needed from the nav params
   const { author, content, description, urlToImage, title, publishedAt } =
-    route.params;
+    props.route.params;
+
+  const toastConfigs = {
+    duration: Toast.durations.SHORT,
+    animation: true,
+    hideOnPress: true,
+    delay: 0,
+  };
 
   // local states
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -26,13 +37,50 @@ const Details = ({ navigation, route }) => {
     bookmark: require("../assets/97064-bookmark-icon.json"),
   };
 
+  useEffect(() => {
+    if (
+      props.bookmarks.includes({
+        author,
+        content,
+        description,
+        urlToImage,
+        title,
+        publishedAt,
+      })
+    ) {
+      setIsBookmarked(true);
+    }
+  }, []);
+
+  const bookmarkHandler = useCallback(
+    async (toastMessage) => {
+      const focusedNews = {
+        author,
+        content,
+        description,
+        urlToImage,
+        title,
+        publishedAt,
+      };
+      if (!isBookmarked) {
+        props.addToBookmarks(focusedNews);
+        bookmarkRef.current?.play();
+        Toast.show(toastMessage, toastConfigs);
+      } else {
+        props.deleteFromBookmarks(focusedNews);
+        bookmarkRef.current?.reset();
+        Toast.show(toastMessage, toastConfigs);
+      }
+    },
+    [isBookmarked, props.bookmarks]
+  );
+
   const reactionHandler = () => {
-    console.log(isBookmarked);
     setIsBookmarked(!isBookmarked);
     if (isBookmarked) {
-      return bookmarkRef.current?.reset();
+      bookmarkHandler("Removed from Bookmarks");
     }
-    bookmarkRef.current?.play();
+    bookmarkHandler("Added to Bookmarks");
   };
 
   return (
@@ -160,28 +208,35 @@ const Details = ({ navigation, route }) => {
             >
               {content}
             </Text>
-            <IconButton
-              icon={() => (
-                <LottieView
-                  ref={bookmarkRef}
-                  style={{ width: 80, height: 80 }}
-                  autoPlay={false}
-                  loop={false}
-                  resizeMode="cover"
-                  source={LottiAssets.bookmark}
-                />
-              )}
+            <Button
+              icon={() =>
+                props.loading ? (
+                  <ActivityIndicator animate size={30} />
+                ) : (
+                  <LottieView
+                    ref={bookmarkRef}
+                    style={{ width: 80, height: 80 }}
+                    autoPlay={false}
+                    loop={false}
+                    resizeMode="cover"
+                    source={LottiAssets.bookmark}
+                  />
+                )
+              }
+              mode="outlined"
               style={{
-                backgroundColor: "#050129",
+                // backgroundColor: "#050129",
+                marginVertical: 24,
+                alignSelf: 'center',
                 position: "relative",
                 height: 80,
-                width: 80,
-                borderRadius: 500,
-                left: "75%",
+                width: "80%",
+                borderRadius: 8,
+                // left: "75%",
                 zIndex: 1,
               }}
               onPress={reactionHandler}
-            />
+            >Add to Bookmarks</Button>
             {/* <Button >React</Button> */}
           </View>
         </View>
@@ -190,4 +245,18 @@ const Details = ({ navigation, route }) => {
   );
 };
 
-export default Details;
+const mapStateToProps = (state) => {
+  return {
+    bookmarks: state.bookmark.bookmarks,
+    loading: state.news.loading,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addToBookmarks: (news) => dispatch(actions.addToBookmarks(news)),
+    deleteFromBookmarks: (news) => dispatch(actions.deleteFromBookmark(news)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Details);
